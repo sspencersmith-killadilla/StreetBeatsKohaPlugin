@@ -1,0 +1,31 @@
+[% INCLUDE 'opac-top.inc' %]
+<div class="main">
+    <div class="container-fluid">
+        <h1>StreetBeats: Live Performance Schedule</h1>
+        <div class="row">
+            [% FOREACH perf IN performances %]
+            <div class="col-sm-4" style="margin-bottom: 20px;">
+                <div class="card" style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                    [% IF perf.image_url %]
+                        <img src="[% perf.image_url | html %]" alt="Artist Logo" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                    [% END %]
+                    <h3>[% perf.firstname | html %]</h3>
+                    <p><strong>Where:</strong> [% perf.location_name | html %]</p>
+                    <p><strong>When:</strong> [% perf.start_time | html %]</p>
+                    <p>[% perf.bio | html %]</p>
+                    
+                    <div class="actions" style="margin-top: 15px;">
+                        [% IF perf.tip_link %]
+                            <a href="[% perf.tip_link | html %]" class="btn btn-success" target="_blank" rel="noopener noreferrer">💸 Tip Musician</a>
+                        [% END %]
+                        [% IF perf.social_link %]
+                            <a href="[% perf.social_link | html %]" class="btn btn-primary" target="_blank" rel="noopener noreferrer">🌐 Social Media</a>
+                        [% END %]
+                    </div>
+                </div>
+            </div>
+            [% END %]
+        </div>
+    </div>
+</div>
+[% INCLUDE 'opac-bottom.inc' %]

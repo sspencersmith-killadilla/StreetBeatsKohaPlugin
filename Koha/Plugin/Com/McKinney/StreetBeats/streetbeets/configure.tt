@@ -1,0 +1,270 @@
+[% INCLUDE 'doc-head-open.inc' %]
+<title>StreetBeats Configuration</title>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+<body id="plugins_streetbeats_configure" class="plugins">
+[% INCLUDE 'header.inc' %]
+
+<div id="breadcrumbs">
+    <a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo;
+    <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo;
+    StreetBeats &rsaquo; Schedule and booking review
+</div>
+
+<div class="main container-fluid">
+    <h1>StreetBeats: venues, gigs, and artist bookings</h1>
+
+    [% IF install_error %]
+        <div class="alert alert-danger" role="alert">
+            <strong>StreetBeats database setup needs attention.</strong>
+            <p>[% install_error | html %]</p>
+        </div>
+    [% END %]
+    [% IF message %]
+        <div class="alert alert-success" role="status">[% message | html %]</div>
+    [% END %]
+
+    <div class="alert alert-info">
+        <strong>Public booking page:</strong>
+        <a href="[% public_booking_path | html %]" target="_blank" rel="noopener">Open StreetBeats booking page</a>
+        <p>Anyone can browse upcoming published shows and confirmed artist profiles. Patrons sign in, save an artist profile, and request an open slot. Approved profiles are public; setup and technical needs remain staff-only. Review and approve or reject requests from the plugin's running page.</p>
+        <p>Add this link to OPAC navigation or custom OPAC content: <code>[% public_booking_path | html %]</code></p>
+    </div>
+
+    <section>
+        <h2>Public page branding</h2>
+        <p>Choose colors with the picker or paste exact six-digit hex codes such as <code>#176B50</code>. The preview updates as you edit; changes apply to the public page after saving.</p>
+        <form method="post" action="/cgi-bin/koha/plugins/run.pl">
+            <input type="hidden" name="class" value="[% CLASS | html %]">
+            <input type="hidden" name="method" value="configure">
+            <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+            <fieldset class="rows">
+                <ol>
+                    <li>
+                        <label for="brand_primary">Primary color:</label>
+                        <input type="text" name="brand_primary" id="brand_primary" value="[% brand_colors.primary | html %]" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#176B50" required>
+                        <input type="color" id="brand_primary_picker" value="[% brand_colors.primary | html %]" aria-label="Choose primary color">
+                        <span class="hint">Buttons, links, and active details.</span>
+                    </li>
+                    <li>
+                        <label for="brand_header">Header color:</label>
+                        <input type="text" name="brand_header" id="brand_header" value="[% brand_colors.header | html %]" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#532C4D" required>
+                        <input type="color" id="brand_header_picker" value="[% brand_colors.header | html %]" aria-label="Choose header color">
+                        <span class="hint">The large top banner.</span>
+                    </li>
+                    <li>
+                        <label for="brand_accent">Accent color:</label>
+                        <input type="text" name="brand_accent" id="brand_accent" value="[% brand_colors.accent | html %]" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#D6F06F" required>
+                        <input type="color" id="brand_accent_picker" value="[% brand_colors.accent | html %]" aria-label="Choose accent color">
+                        <span class="hint">StreetBeats wordmark and small highlights.</span>
+                    </li>
+                    <li>
+                        <label for="brand_background">Page background:</label>
+                        <input type="text" name="brand_background" id="brand_background" value="[% brand_colors.background | html %]" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#F7F5F0" required>
+                        <input type="color" id="brand_background_picker" value="[% brand_colors.background | html %]" aria-label="Choose page background color">
+                    </li>
+                    <li>
+                        <label for="brand_surface">Card and panel background:</label>
+                        <input type="text" name="brand_surface" id="brand_surface" value="[% brand_colors.surface | html %]" maxlength="7" pattern="#[0-9A-Fa-f]{6}" placeholder="#FFFEFA" required>
+                        <input type="color" id="brand_surface_picker" value="[% brand_colors.surface | html %]" aria-label="Choose card and panel background color">
+                    </li>
+                </ol>
+            </fieldset>
+            <div id="branding-preview" style="max-width: 32rem; padding: 1rem; margin: .5rem 0 1rem; border-radius: .6rem; background: [% brand_colors.background | html %];">
+                <div data-preview="header" style="padding: 1rem; border-radius: .5rem; background: [% brand_colors.header | html %]; color: white;">
+                    <strong data-preview="accent" style="color: [% brand_colors.accent | html %];">StreetBeats · live at your library</strong>
+                    <p style="margin: .5rem 0 0;">A preview of your header and accent colors</p>
+                </div>
+                <div data-preview="surface" style="margin-top: .6rem; padding: 1rem; border-radius: .5rem; background: [% brand_colors.surface | html %];">
+                    <span data-preview="primary" style="color: [% brand_colors.primary | html %]; font-weight: bold;">Upcoming show · Open slot</span>
+                </div>
+            </div>
+            <fieldset class="action">
+                <button type="submit" name="action" value="save_branding" class="btn btn-primary">Save branding colors</button>
+                <button type="submit" name="action" value="reset_branding" class="btn btn-default" formnovalidate>Restore defaults</button>
+            </fieldset>
+        </form>
+    </section>
+    <script>
+        (function () {
+            var names = ["primary", "header", "accent", "background", "surface"];
+            var preview = document.getElementById("branding-preview");
+            function updatePreview() {
+                names.forEach(function (name) {
+                    var input = document.getElementById("brand_" + name);
+                    var picker = document.getElementById("brand_" + name + "_picker");
+                    var target = name === "background" ? preview : preview.querySelector('[data-preview="' + name + '"]');
+                    if (input && picker && /^#[0-9A-Fa-f]{6}$/.test(input.value)) {
+                        picker.value = input.value;
+                    }
+                    if (input && target && /^#[0-9A-Fa-f]{6}$/.test(input.value)) {
+                        if (name === "primary" || name === "accent") {
+                            target.style.color = input.value;
+                        } else {
+                            target.style.backgroundColor = input.value;
+                        }
+                    }
+                });
+            }
+            names.forEach(function (name) {
+                var input = document.getElementById("brand_" + name);
+                var picker = document.getElementById("brand_" + name + "_picker");
+                if (input) input.addEventListener("input", updatePreview);
+                if (picker) picker.addEventListener("input", function () {
+                    if (input) input.value = picker.value.toUpperCase();
+                    updatePreview();
+                });
+            });
+        }());
+    </script>
+
+    <section>
+        <h2>1. Add a venue</h2>
+        <form method="post" action="/cgi-bin/koha/plugins/run.pl" class="validated">
+            <input type="hidden" name="class" value="[% CLASS | html %]">
+            <input type="hidden" name="method" value="configure">
+            <input type="hidden" name="action" value="add_location">
+            <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+            <fieldset class="rows">
+                <ol>
+                    <li><label for="loc_name" class="required">Venue name:</label>
+                        <input type="text" name="loc_name" id="loc_name" maxlength="255" required></li>
+                    <li><label for="loc_desc">Description:</label>
+                        <textarea name="loc_desc" id="loc_desc" rows="2"></textarea></li>
+                    <li><label for="loc_features">Features and access:</label>
+                        <textarea name="loc_features" id="loc_features" rows="3" placeholder="Indoor/outdoor, accessible entrance, power, seating, parking, sound limits"></textarea></li>
+                </ol>
+            </fieldset>
+            <fieldset class="action"><button type="submit" class="btn btn-primary">Add venue</button></fieldset>
+        </form>
+    </section>
+
+    <section>
+        <h2>Existing venues</h2>
+        [% IF locations.size %]
+            [% FOREACH location IN locations %]
+                <form method="post" action="/cgi-bin/koha/plugins/run.pl" class="validated">
+                    <input type="hidden" name="class" value="[% CLASS | html %]">
+                    <input type="hidden" name="method" value="configure">
+                    <input type="hidden" name="action" value="update_location">
+                    <input type="hidden" name="location_id" value="[% location.location_id | html %]">
+                    <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+                    <fieldset class="rows">
+                        <legend>[% location.location_name | html %]</legend>
+                        <ol>
+                            <li><label for="loc_name_[% location.location_id | html %]">Venue name:</label>
+                                <input type="text" name="loc_name" id="loc_name_[% location.location_id | html %]" maxlength="255" value="[% location.location_name | html %]" required></li>
+                            <li><label for="loc_desc_[% location.location_id | html %]">Description:</label>
+                                <textarea name="loc_desc" id="loc_desc_[% location.location_id | html %]" rows="2">[% location.description | html %]</textarea></li>
+                            <li><label for="loc_features_[% location.location_id | html %]">Features and access:</label>
+                                <textarea name="loc_features" id="loc_features_[% location.location_id | html %]" rows="3">[% location.features | html %]</textarea></li>
+                        </ol>
+                    </fieldset>
+                    <fieldset class="action"><button type="submit" class="btn btn-default">Save venue</button></fieldset>
+                </form>
+            [% END %]
+        [% ELSE %]
+            <p>Add a venue before publishing a gig.</p>
+        [% END %]
+    </section>
+
+    <section>
+        <h2>2. Publish a specific gig slot</h2>
+        [% IF locations.size %]
+            <form method="post" action="/cgi-bin/koha/plugins/run.pl" class="validated">
+                <input type="hidden" name="class" value="[% CLASS | html %]">
+                <input type="hidden" name="method" value="configure">
+                <input type="hidden" name="action" value="publish_gig">
+                <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+                <fieldset class="rows">
+                    <ol>
+                        <li><label for="gig_title" class="required">Gig name:</label>
+                            <input type="text" name="gig_title" id="gig_title" maxlength="255" placeholder="e.g., Friday evening set" required></li>
+                        <li><label for="location_id" class="required">Venue:</label>
+                            <select name="location_id" id="location_id" required>
+                                <option value="">Choose a venue</option>
+                                [% FOREACH location IN locations %]
+                                    <option value="[% location.location_id | html %]">[% location.location_name | html %]</option>
+                                [% END %]
+                            </select></li>
+                        <li><label for="start_time" class="required">Start date and time:</label>
+                            <input type="datetime-local" name="start_time" id="start_time" required>
+                            <span class="hint">Enter the performance time in your library's local time.</span></li>
+                        <li><label for="duration_minutes" class="required">Duration (minutes):</label>
+                            <input type="number" name="duration_minutes" id="duration_minutes" min="15" max="480" step="15" value="60" required></li>
+                        <li><label for="gig_details">Details for patrons:</label>
+                            <textarea name="gig_details" id="gig_details" rows="3"></textarea></li>
+                    </ol>
+                </fieldset>
+                <fieldset class="action"><button type="submit" class="btn btn-primary">Publish gig slot</button></fieldset>
+            </form>
+        [% ELSE %]
+            <p>Create a venue first so staff can assign the gig to a place.</p>
+        [% END %]
+    </section>
+
+    <section>
+        <h2>Published and past gigs</h2>
+        [% IF gigs.size %]
+            <table class="table table-striped">
+                <thead><tr><th>Gig</th><th>Venue</th><th>Start</th><th>Length</th><th>Booking</th><th>Visibility</th><th>Edit or cancel</th></tr></thead>
+                <tbody>
+                [% FOREACH gig IN gigs %]
+                    <tr>
+                        <td>[% gig.title | html %]</td>
+                        <td>[% gig.location_name | html %]</td>
+                        <td>[% gig.start_time | html %]</td>
+                        <td>[% gig.duration_minutes | html %] min</td>
+                        <td>
+                            [% IF gig.pending_count %]Pending review
+                            [% ELSIF gig.booking_count %]Approved booking
+                            [% ELSE %]No active booking[% END %]
+                        </td>
+                        <td>[% IF gig.is_published %]Published[% ELSE %]Unpublished[% END %]</td>
+                        <td>
+                            <details>
+                                <summary>Edit gig</summary>
+                                <form method="post" action="/cgi-bin/koha/plugins/run.pl" class="validated">
+                                    <input type="hidden" name="class" value="[% CLASS | html %]">
+                                    <input type="hidden" name="method" value="configure">
+                                    <input type="hidden" name="action" value="update_gig">
+                                    <input type="hidden" name="gig_id" value="[% gig.gig_id | html %]">
+                                    <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+                                    <label>Gig name <input type="text" name="gig_title" maxlength="255" value="[% gig.title | html %]" required></label>
+                                    <label>Venue
+                                        <select name="location_id" required>
+                                            [% FOREACH location IN locations %]
+                                                <option value="[% location.location_id | html %]" [% IF location.location_id == gig.location_id %]selected="selected"[% END %]>[% location.location_name | html %]</option>
+                                            [% END %]
+                                        </select>
+                                    </label>
+                                    <label>Start date/time <input type="datetime-local" name="start_time" value="[% gig.start_time_local | html %]" required></label>
+                                    <label>Duration in minutes <input type="number" name="duration_minutes" min="15" max="480" step="15" value="[% gig.duration_minutes | html %]" required></label>
+                                    <label>Details <textarea name="gig_details" rows="2">[% gig.details | html %]</textarea></label>
+                                    <label><input type="checkbox" name="is_published" value="1" [% IF gig.is_published %]checked="checked"[% END %]> Listed on public booking page</label>
+                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                </form>
+                            </details>
+                            [% IF gig.is_published OR gig.booking_count %]
+                                <form method="post" action="/cgi-bin/koha/plugins/run.pl" onsubmit="return confirm('Cancel this gig? Active requests and approved bookings will be marked cancelled.');">
+                                    <input type="hidden" name="class" value="[% CLASS | html %]">
+                                    <input type="hidden" name="method" value="configure">
+                                    <input type="hidden" name="action" value="cancel_gig">
+                                    <input type="hidden" name="gig_id" value="[% gig.gig_id | html %]">
+                                    <input type="hidden" name="csrf_token" value="[% csrf_token | html %]">
+                                    <label>Note shown to affected patrons <input type="text" name="staff_note" maxlength="1000" placeholder="Optional cancellation note"></label>
+                                    <button type="submit" class="btn btn-danger">Cancel gig</button>
+                                </form>
+                            [% END %]
+                        </td>
+                    </tr>
+                [% END %]
+                </tbody>
+            </table>
+        [% ELSE %]
+            <p>No gigs have been scheduled yet.</p>
+        [% END %]
+    </section>
+</div>
+
+[% INCLUDE 'intranet-bottom.inc' %]
