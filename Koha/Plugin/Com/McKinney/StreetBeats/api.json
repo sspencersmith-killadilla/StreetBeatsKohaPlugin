@@ -1,0 +1,259 @@
+{
+  "/gigs": {
+    "get": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#list_gigs",
+      "operationId": "listStreetBeatsGigs",
+      "tags": ["streetbeats"],
+      "summary": "List published future gigs that are open or have an approved artist",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "Public StreetBeats schedule with available slots and confirmed artist profiles",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "gig_id": {"type": "integer"},
+                "title": {"type": "string"},
+                "start_time": {"type": "string"},
+                "duration_minutes": {"type": "integer"},
+                "details": {"type": "string"},
+                "location_name": {"type": "string"},
+                "description": {"type": "string"},
+                "features": {"type": "string"},
+                "booking_status": {"type": "string", "enum": ["open", "approved"]},
+                "artist_name": {"type": "string"},
+                "artist_genre": {"type": "string"},
+                "artist_bio": {"type": "string"},
+                "artist_image_url": {"type": "string"},
+                "artist_social_link": {"type": "string"},
+                "artist_tip_link": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/branding": {
+    "get": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#get_branding",
+      "operationId": "getStreetBeatsBranding",
+      "tags": ["streetbeats"],
+      "summary": "Get public schedule branding colors",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "Validated public schedule color palette",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "primary": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+              "header": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+              "accent": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+              "background": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
+              "surface": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "/session": {
+    "get": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#session_info",
+      "operationId": "getStreetBeatsSession",
+      "tags": ["streetbeats"],
+      "summary": "Check patron session and return a CSRF token",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "Session status",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "logged_in": {"type": "boolean"},
+              "csrf_token": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "/profile": {
+    "get": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#get_profile",
+      "operationId": "getStreetBeatsArtistProfile",
+      "tags": ["streetbeats"],
+      "summary": "Get the signed-in patron's private artist profile",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "Patron artist profile",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "band_name": {"type": "string"},
+              "genre": {"type": "string"},
+              "bio": {"type": "string"},
+              "social_link": {"type": "string"},
+              "image_url": {"type": "string"},
+              "tip_link": {"type": "string"},
+              "technical_needs": {"type": "string"}
+            }
+          }
+        },
+        "401": {
+          "description": "Sign-in required",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        }
+      }
+    },
+    "put": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#save_profile",
+      "operationId": "saveStreetBeatsArtistProfile",
+      "tags": ["streetbeats"],
+      "summary": "Save the signed-in patron's artist profile",
+      "consumes": ["application/json"],
+      "produces": ["application/json"],
+      "parameters": [
+        {
+          "name": "body",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["band_name"],
+            "properties": {
+              "band_name": {"type": "string", "maxLength": 255},
+              "genre": {"type": "string", "maxLength": 255},
+              "bio": {"type": "string", "maxLength": 4000},
+              "social_link": {"type": "string", "maxLength": 1000},
+              "image_url": {"type": "string", "maxLength": 1000},
+              "tip_link": {"type": "string", "maxLength": 1000},
+              "technical_needs": {"type": "string", "maxLength": 4000}
+            }
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Profile saved",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "band_name": {"type": "string"},
+              "genre": {"type": "string"},
+              "bio": {"type": "string"},
+              "social_link": {"type": "string"},
+              "image_url": {"type": "string"},
+              "tip_link": {"type": "string"},
+              "technical_needs": {"type": "string"}
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid profile",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "401": {
+          "description": "Sign-in required",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "500": {
+          "description": "Profile could not be saved",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        }
+      }
+    }
+  },
+  "/my-bookings": {
+    "get": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#my_bookings",
+      "operationId": "listMyStreetBeatsBookings",
+      "tags": ["streetbeats"],
+      "summary": "List the signed-in patron's bookings and staff decisions",
+      "produces": ["application/json"],
+      "responses": {
+        "200": {
+          "description": "The patron's StreetBeats bookings",
+          "schema": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "slot_id": {"type": "integer"},
+                "status": {"type": "string"},
+                "staff_note": {"type": "string"},
+                "start_time": {"type": "string"},
+                "location_name": {"type": "string"},
+                "title": {"type": "string"}
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Sign-in required",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        }
+      }
+    }
+  },
+  "/bookings": {
+    "post": {
+      "x-mojo-to": "Com::McKinney::StreetBeats::BookingController#create_booking",
+      "operationId": "createStreetBeatsBooking",
+      "tags": ["streetbeats"],
+      "summary": "Request an open gig for staff approval",
+      "consumes": ["application/json"],
+      "produces": ["application/json"],
+      "parameters": [
+        {
+          "name": "body",
+          "in": "body",
+          "required": true,
+          "schema": {
+            "type": "object",
+            "required": ["gig_id"],
+            "properties": {
+              "gig_id": {"type": "integer"}
+            }
+          }
+        }
+      ],
+      "responses": {
+        "201": {
+          "description": "Booking request submitted for staff approval",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "gig_id": {"type": "integer"},
+              "message": {"type": "string"}
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid request",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "401": {
+          "description": "Koha patron sign-in required",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "404": {
+          "description": "Gig is no longer available",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "409": {
+          "description": "Gig has already been reserved",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+        "500": {
+          "description": "Booking could not be created",
+          "schema": {"type": "object", "properties": {"error": {"type": "string"}}}
+        }
+      }
+    }
+  }
+}

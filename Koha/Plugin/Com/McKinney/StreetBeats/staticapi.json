@@ -1,0 +1,22 @@
+{
+  "/booking.html": {
+    "get": {
+      "x-mojo-to": "Static#get",
+      "operationId": "streetBeatsBookingPage",
+      "tags": ["pluginStatic"],
+      "responses": {
+        "200": {
+          "description": "StreetBeats public booking page",
+          "schema": {"type": "file"}
+        },
+        "404": {
+          "description": "Booking page not found",
+          "schema": {
+            "type": "object",
+            "properties": {"error": {"type": "string"}}
+          }
+        }
+      }
+    }
+  }
+}
