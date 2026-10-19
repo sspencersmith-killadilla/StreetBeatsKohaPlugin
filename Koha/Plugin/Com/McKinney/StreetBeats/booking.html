@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StreetBeats | Live at your library</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #17221e; background: var(--page-background); --ink: #17221e; --muted: #66716b; --paper: #fffefa; --line: #e5e1d8; --green: #176b50; --lime: #d6f06f; --plum: #532c4d; --page-background: #f7f5f0; --header-text: #ffffff; --button-text: #ffffff; --accent-text: #17221e; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(ellipse at 80% 0%, var(--paper) 0, transparent 36rem), var(--page-background); }
+    header { color: var(--header-text); background: var(--plum); padding: 2.6rem max(1.25rem, calc((100vw - 1120px) / 2)) 2.8rem; position: relative; overflow: hidden; }
+    header::after { content: "♪"; position: absolute; right: max(2rem, calc((100vw - 1120px) / 2)); top: -2.5rem; font: 19rem/1 Georgia, serif; color: #ffffff12; transform: rotate(12deg); pointer-events: none; }
+    .brand { display: inline-flex; align-items: center; gap: .55rem; margin-bottom: 2.3rem; color: var(--lime); font-size: .8rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .brand-mark { display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--lime); color: var(--accent-text); font-size: 1rem; letter-spacing: 0; }
+    header h1 { max-width: 720px; margin: 0; font: 700 clamp(2.5rem, 6vw, 5rem)/.98 Georgia, "Times New Roman", serif; letter-spacing: -.045em; }
+    header p { max-width: 580px; margin: 1rem 0 0; color: var(--header-text); font-size: 1.05rem; line-height: 1.65; }
+    main { max-width: 1120px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+    #account, #notice { padding: 1rem 1.2rem; border-radius: .8rem; margin-bottom: 1rem; background: var(--paper); border: 1px solid var(--line); }
+    #account { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    #account p { margin: .2rem 0; }
+    #account .account-copy { color: var(--muted); }
+    #notice { border-color: #d5e6a5; background: #f3f9dc; color: #344411; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: .9rem; padding: 1.3rem; margin: 1.2rem 0; box-shadow: 0 8px 25px #28201408; }
+    .panel h2 { margin: 0 0 .6rem; font: 700 1.55rem/1.2 Georgia, "Times New Roman", serif; }
+    .profile-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .9rem; margin-top: 1rem; }
+    .profile-form label { display: block; font-weight: 650; }
+    .profile-form input, .profile-form textarea { display: block; width: 100%; margin-top: .3rem; padding: .7rem .75rem; border: 1px solid #cbc8bd; border-radius: .45rem; background: white; font: inherit; }
+    .profile-form input:focus, .profile-form textarea:focus { outline: 3px solid #d6f06f88; border-color: var(--green); }
+    .profile-form textarea { min-height: 5rem; }
+    .wide { grid-column: 1 / -1; }
+    .profile-disclosure { padding: 0; }
+    .profile-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.3rem; font-weight: 750; cursor: pointer; list-style: none; }
+    .profile-disclosure > summary::-webkit-details-marker { display: none; }
+    .profile-disclosure > summary::after { content: "+"; color: var(--green); font-size: 1.4rem; line-height: 1; }
+    .profile-disclosure[open] > summary::after { content: "−"; }
+    .profile-disclosure > summary:focus-visible { outline: 3px solid var(--green); outline-offset: -3px; border-radius: .8rem; }
+    .profile-status { margin-left: auto; color: var(--muted); font-size: .85rem; font-weight: 500; }
+    .profile-content { padding: 0 1.3rem 1.3rem; border-top: 1px solid var(--line); }
+    #gigs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 1.1rem; align-items: stretch; }
+    .section-heading { grid-column: 1 / -1; margin: 1rem 0 .2rem; font: 700 clamp(1.8rem, 3vw, 2.5rem)/1.05 Georgia, "Times New Roman", serif; letter-spacing: -.025em; }
+    .section-intro { grid-column: 1 / -1; margin: -.45rem 0 .2rem; color: var(--muted); }
+    .booking { border-top: 1px solid var(--line); padding: .8rem 0; }
+    .gig { min-width: 0; display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line); border-radius: .9rem; overflow: hidden; box-shadow: 0 8px 25px #2820140a; }
+    .gig-top { padding: 1.25rem 1.3rem 1rem; border-bottom: 1px solid var(--line); }
+    .gig h2 { font: 700 1.45rem/1.15 Georgia, "Times New Roman", serif; letter-spacing: -.02em; margin: .7rem 0 .35rem; }
+    .gig p { margin: .45rem 0; line-height: 1.55; }
+    .gig-body { display: flex; flex-direction: column; flex: 1; padding: 1rem 1.3rem 1.3rem; }
+    .when { color: var(--green); font-weight: 750; }
+    .venue { color: var(--muted); }
+    .features { color: #3c5748; font-size: .92rem; }
+    .badge { display: inline-flex; align-items: center; gap: .4rem; padding: .32rem .62rem; border-radius: 99px; background: #eef4dd; color: #3d5613; font-size: .76rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .badge.booked { background: #f3e9f1; color: #64375d; }
+    .artist { display: grid; grid-template-columns: 4.3rem 1fr; gap: .85rem; align-items: start; margin: .3rem 0 .8rem; padding: .85rem; background: #f7f4f1; border-radius: .7rem; }
+    .artist img, .artist-placeholder { width: 4.3rem; height: 4.3rem; object-fit: cover; border-radius: .55rem; background: #e7e0d9; }
+    .artist-placeholder { display: grid; place-items: center; color: var(--plum); font: 700 1.7rem Georgia, serif; }
+    .artist h3 { margin: .05rem 0 .15rem; font: 700 1.15rem Georgia, "Times New Roman", serif; }
+    .artist .genre { color: var(--green); font-size: .88rem; font-weight: 700; }
+    .artist .bio { color: #505c55; font-size: .92rem; }
+    .artist-links { display: flex; flex-wrap: wrap; gap: .8rem; margin-top: .5rem; font-size: .9rem; font-weight: 700; }
+    .gig-action { margin-top: auto; padding-top: .8rem; }
+    button, .button { display: inline-block; border: 0; border-radius: .45rem; background: var(--green); color: var(--button-text); padding: .72rem 1rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+    button:hover, .button:hover { background: #10523c; color: white; }
+    button:disabled { background: #9ba9a0; cursor: not-allowed; }
+    a { color: var(--green); }
+    #account a.button { white-space: nowrap; }
+    .status { color: #5b3325; }
+    .loading, .empty { grid-column: 1 / -1; text-align: center; padding: 2rem 1rem; color: var(--muted); }
+    footer { max-width: 1120px; margin: 0 auto; padding: 0 1.25rem 2rem; color: var(--muted); font-size: .9rem; }
+    @media (max-width: 520px) { header { padding-top: 1.7rem; } .brand { margin-bottom: 1.5rem; } #account { align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="brand-mark">♪</span> StreetBeats</div>
+    <h1>Live music.<br>Right around the corner.</h1>
+    <p>Discover upcoming performances at your library, meet the artists, and claim an open slot when you’re ready to play.</p>
+  </header>
+  <main>
+    <div id="account" aria-live="polite">Checking Koha sign-in…</div>
+    <div id="notice" class="status" role="status" hidden></div>
+    <section id="gigs" aria-live="polite"><p class="loading">Loading available performances…</p></section>
+    <section id="artist-profile" aria-live="polite"></section>
+    <section id="my-bookings" aria-live="polite"></section>
+  </main>
+  <footer>Show times are listed in the library’s local time. Slot requests use your Koha patron account and are confirmed by library staff.</footer>
+  <script>
+    (function () {
+      "use strict";
+      const api = "/api/v1/contrib/streetbeats";
+      const account = document.getElementById("account");
+      const profileSection = document.getElementById("artist-profile");
+      const bookingSection = document.getElementById("my-bookings");
+      const list = document.getElementById("gigs");
+      const notice = document.getElementById("notice");
+      let loggedIn = false;
+      let profileReady = false;
+      let csrfToken = "";
+
+      function text(tag, value, className) {
+        const node = document.createElement(tag);
+        node.textContent = value || "";
+        if (className) node.className = className;
+        return node;
+      }
+
+      function showNotice(message) {
+        notice.textContent = message;
+        notice.hidden = false;
+      }
+
+      function foregroundFor(hex) {
+        const channels = hex.slice(1).match(/.{2}/g).map(function (part) {
+          const value = parseInt(part, 16) / 255;
+          return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+        });
+        const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+        return luminance > 0.18 ? "#17221e" : "#ffffff";
+      }
+
+      function applyBranding(colors) {
+        const properties = {
+          primary: "--green",
+          header: "--plum",
+          accent: "--lime",
+          background: "--page-background",
+          surface: "--paper"
+        };
+        Object.keys(properties).forEach(function (key) {
+          const value = colors[key];
+          if (typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value)) {
+            document.documentElement.style.setProperty(properties[key], value);
+          }
+        });
+        if (/^#[0-9A-Fa-f]{6}$/.test(colors.header || "")) {
+          document.documentElement.style.setProperty("--header-text", foregroundFor(colors.header));
+        }
+        if (/^#[0-9A-Fa-f]{6}$/.test(colors.primary || "")) {
+          document.documentElement.style.setProperty("--button-text", foregroundFor(colors.primary));
+        }
+        if (/^#[0-9A-Fa-f]{6}$/.test(colors.accent || "")) {
+          document.documentElement.style.setProperty("--accent-text", foregroundFor(colors.accent));
+        }
+      }
+
+      async function loadBranding() {
+        try {
+          const colors = await jsonRequest(api + "/branding");
+          applyBranding(colors);
+        } catch (_) {
+          // Keep the built-in palette if the branding endpoint is unavailable.
+        }
+      }
+
+      function safeHttpUrl(value) {
+        if (!value) return "";
+        try {
+          const url = new URL(value);
+          return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+        } catch (_) {
+          return "";
+        }
+      }
+
+      function addExternalLink(parent, value, label) {
+        const href = safeHttpUrl(value);
+        if (!href) return;
+        const link = document.createElement("a");
+        link.href = href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = label;
+        parent.appendChild(link);
+      }
+
+      function localDate(value) {
+        const date = new Date(value.replace(" ", "T"));
+        if (Number.isNaN(date.getTime())) return value;
+        return new Intl.DateTimeFormat(undefined, {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }).format(date);
+      }
+
+      async function jsonRequest(url, options) {
+        const response = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
+        const raw = await response.text();
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+        if (!response.ok) {
+          const contentType = response.headers.get("content-type") || "";
+          const plainText = contentType.includes("text/plain") ? raw.trim().slice(0, 180) : "";
+          let htmlTitle = "";
+          if (!plainText && contentType.includes("text/html")) {
+            try {
+              htmlTitle = new DOMParser().parseFromString(raw, "text/html").title.slice(0, 120);
+            } catch (_) {}
+          }
+          const detail = (data && (data.error || data.message))
+            || plainText
+            || htmlTitle
+            || "Koha returned an unexpected error response.";
+          const error = new Error("HTTP " + response.status + ": " + detail);
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      }
+
+      async function reserve(gigId, button) {
+        button.disabled = true;
+        button.textContent = "Reserving…";
+        try {
+          const result = await jsonRequest(api + "/bookings", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "CSRF-TOKEN": csrfToken
+            },
+            body: JSON.stringify({ gig_id: gigId })
+          });
+          showNotice(result.message || "Your booking request has been sent for staff review.");
+          await loadGigs();
+          if (loggedIn) await loadMyBookings();
+        } catch (error) {
+          showNotice(error.message);
+          button.disabled = !loggedIn || !profileReady;
+          button.textContent = !loggedIn ? "Sign in to reserve" : (profileReady ? "Reserve this gig" : "Save your artist profile first");
+          if (error.status === 401) {
+            loggedIn = false;
+            await loadSession();
+            await loadProfile();
+            await loadGigs();
+          }
+        }
+      }
+
+      function renderProfilePrompt(message) {
+        profileSection.replaceChildren();
+        profileSection.hidden = false;
+        const disclosure = createProfileDisclosure("Profile unavailable");
+        disclosure.content.appendChild(text("p", message));
+        profileSection.appendChild(disclosure.details);
+      }
+
+      function createProfileDisclosure(status) {
+        const details = document.createElement("details");
+        details.className = "panel profile-disclosure";
+        const summary = document.createElement("summary");
+        summary.appendChild(text("span", "Artist profile"));
+        const state = text("span", status, "profile-status");
+        summary.appendChild(state);
+        details.appendChild(summary);
+        const content = document.createElement("div");
+        content.className = "profile-content";
+        details.appendChild(content);
+        return { details: details, content: content, status: state };
+      }
+
+      function addProfileField(form, name, labelText, value, options) {
+        const settings = options || {};
+        const label = document.createElement("label");
+        label.textContent = labelText;
+        if (settings.wide) label.className = "wide";
+        const input = document.createElement(settings.multiline ? "textarea" : "input");
+        input.name = name;
+        input.value = value || "";
+        if (!settings.multiline) input.type = settings.type || "text";
+        if (settings.required) input.required = true;
+        if (settings.placeholder) input.placeholder = settings.placeholder;
+        label.appendChild(input);
+        form.appendChild(label);
+      }
+
+      function renderProfileForm(profile) {
+        profileSection.replaceChildren();
+        profileSection.hidden = false;
+        const disclosure = createProfileDisclosure(profileReady ? "Saved" : "Needed to request a slot");
+        const content = disclosure.content;
+        content.appendChild(text("p", "Your artist profile is optional for browsing. To request an open slot, add your performer name. Public-facing profile details appear on the schedule after staff approves a booking; setup and technical needs stay staff-only."));
+        const form = document.createElement("form");
+        form.className = "profile-form";
+        addProfileField(form, "band_name", "Band or performer name *", profile.band_name, { required: true });
+        addProfileField(form, "genre", "Genre or style", profile.genre, { placeholder: "e.g., jazz, folk, spoken word" });
+        addProfileField(form, "social_link", "Social media link", profile.social_link, { type: "url", placeholder: "https://…" });
+        addProfileField(form, "image_url", "Image URL (hosted photo or logo)", profile.image_url, { type: "url", placeholder: "https://…" });
+        addProfileField(form, "tip_link", "Optional tip/support link", profile.tip_link, { type: "url", placeholder: "https://…" });
+        addProfileField(form, "bio", "Short artist bio", profile.bio, { multiline: true, wide: true, placeholder: "A few lines about your act or performance" });
+        addProfileField(form, "technical_needs", "Setup or technical needs", profile.technical_needs, { multiline: true, wide: true, placeholder: "Microphones, power, setup time, accessibility needs, or other requirements" });
+        const submit = document.createElement("button");
+        submit.type = "submit";
+        submit.textContent = "Save artist profile";
+        form.appendChild(submit);
+        form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          submit.disabled = true;
+          try {
+            await jsonRequest(api + "/profile", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json", "CSRF-TOKEN": csrfToken },
+              body: JSON.stringify(Object.fromEntries(new FormData(form).entries()))
+            });
+            profileReady = true;
+            disclosure.status.textContent = "Saved";
+            showNotice("Artist profile saved.");
+            await loadGigs();
+          } catch (error) {
+            showNotice(error.message);
+          } finally {
+            submit.disabled = false;
+          }
+        });
+        content.appendChild(form);
+        profileSection.appendChild(disclosure.details);
+      }
+
+      async function loadProfile() {
+        if (!loggedIn) {
+          profileReady = false;
+          profileSection.replaceChildren();
+          profileSection.hidden = true;
+          return;
+        }
+        try {
+          const profile = await jsonRequest(api + "/profile");
+          profileReady = Boolean((profile.band_name || "").trim());
+          renderProfileForm(profile);
+        } catch (error) {
+          profileReady = false;
+          renderProfilePrompt(error.message);
+        }
+      }
+
+      async function loadMyBookings() {
+        bookingSection.replaceChildren();
+        bookingSection.hidden = !loggedIn;
+        if (!loggedIn) return;
+        const panel = document.createElement("div");
+        panel.className = "panel";
+        panel.appendChild(text("h2", "My booking requests"));
+        try {
+          const bookings = await jsonRequest(api + "/my-bookings");
+          if (!bookings.length) {
+            panel.appendChild(text("p", "You have not requested a performance slot yet."));
+          } else {
+            const labels = {
+              pending: "Waiting for staff approval",
+              approved: "Approved",
+              rejected: "Not approved — this slot is open again",
+              cancelled: "Cancelled"
+            };
+            bookings.forEach(function (booking) {
+              const row = document.createElement("div");
+              row.className = "booking";
+              row.appendChild(text("strong", booking.title));
+              row.appendChild(text("p", localDate(booking.start_time) + " · " + booking.location_name));
+              row.appendChild(text("p", "Status: " + (labels[booking.status] || booking.status)));
+              if (booking.staff_note) row.appendChild(text("p", "Staff note: " + booking.staff_note));
+              panel.appendChild(row);
+            });
+          }
+        } catch (error) {
+          panel.appendChild(text("p", error.message));
+        }
+        bookingSection.appendChild(panel);
+      }
+
+      function renderGigs(gigs) {
+        list.replaceChildren();
+        const heading = text("h2", "Upcoming shows", "section-heading");
+        list.appendChild(heading);
+        list.appendChild(text("p", "See who’s playing and find an open date for your own set.", "section-intro"));
+        if (!gigs.length) {
+          list.appendChild(text("p", "No upcoming shows are listed right now. Check back soon.", "empty"));
+          return;
+        }
+        gigs.forEach(function (gig) {
+          const card = document.createElement("article");
+          card.className = "gig";
+          const top = document.createElement("div");
+          top.className = "gig-top";
+          const isBooked = gig.booking_status === "approved";
+          const badge = text("span", isBooked ? "Artist booked" : "Open slot", "badge" + (isBooked ? " booked" : ""));
+          top.appendChild(badge);
+          top.appendChild(text("h2", gig.title));
+          top.appendChild(text("p", localDate(gig.start_time) + " · " + gig.duration_minutes + " min", "when"));
+          top.appendChild(text("p", gig.location_name, "venue"));
+          card.appendChild(top);
+
+          const body = document.createElement("div");
+          body.className = "gig-body";
+          if (isBooked && gig.artist_name) {
+            const artist = document.createElement("div");
+            artist.className = "artist";
+            let portrait;
+            const imageUrl = safeHttpUrl(gig.artist_image_url);
+            if (imageUrl) {
+              portrait = document.createElement("img");
+              portrait.src = imageUrl;
+              portrait.alt = gig.artist_name + " artist portrait";
+              portrait.loading = "lazy";
+              portrait.referrerPolicy = "no-referrer";
+            } else {
+              portrait = text("div", gig.artist_name.trim().charAt(0).toUpperCase(), "artist-placeholder");
+              portrait.setAttribute("aria-hidden", "true");
+            }
+            artist.appendChild(portrait);
+            const artistInfo = document.createElement("div");
+            artistInfo.appendChild(text("h3", gig.artist_name));
+            if (gig.artist_genre) artistInfo.appendChild(text("p", gig.artist_genre, "genre"));
+            if (gig.artist_bio) artistInfo.appendChild(text("p", gig.artist_bio, "bio"));
+            const links = document.createElement("div");
+            links.className = "artist-links";
+            addExternalLink(links, gig.artist_social_link, "Artist links ↗");
+            addExternalLink(links, gig.artist_tip_link, "Support the artist ↗");
+            if (links.childNodes.length) artistInfo.appendChild(links);
+            artist.appendChild(artistInfo);
+            body.appendChild(artist);
+          } else if (isBooked) {
+            body.appendChild(text("p", "This show is confirmed. Artist profile details are not available yet.", "features"));
+          }
+          if (gig.description) body.appendChild(text("p", gig.description));
+          if (gig.features) body.appendChild(text("p", "At the venue: " + gig.features, "features"));
+          if (gig.details) body.appendChild(text("p", gig.details));
+
+          if (!isBooked) {
+            const action = document.createElement("div");
+            action.className = "gig-action";
+            if (!loggedIn) {
+              const signIn = document.createElement("a");
+              signIn.className = "button";
+              signIn.href = "/cgi-bin/koha/opac-user.pl";
+              signIn.target = "_blank";
+              signIn.rel = "noopener";
+              signIn.textContent = "Sign in to request this slot";
+              action.appendChild(signIn);
+            } else if (!profileReady) {
+              const profileLink = document.createElement("a");
+              profileLink.className = "button";
+              profileLink.href = "#artist-profile";
+              profileLink.textContent = "Create your artist profile";
+              profileLink.addEventListener("click", function (event) {
+                event.preventDefault();
+                const disclosure = profileSection.querySelector("details");
+                if (!disclosure) return;
+                disclosure.open = true;
+                disclosure.querySelector("summary").focus();
+                disclosure.scrollIntoView({ behavior: "smooth", block: "start" });
+              });
+              action.appendChild(profileLink);
+            } else {
+              const button = document.createElement("button");
+              button.type = "button";
+              button.textContent = "Request this slot";
+              button.addEventListener("click", function () { reserve(gig.gig_id, button); });
+              action.appendChild(button);
+            }
+            body.appendChild(action);
+          }
+          card.appendChild(body);
+          list.appendChild(card);
+        });
+      }
+
+      async function loadSession() {
+        try {
+          const session = await jsonRequest(api + "/session");
+          csrfToken = session.csrf_token || "";
+          loggedIn = Boolean(session.logged_in && csrfToken);
+          account.replaceChildren();
+          if (loggedIn) {
+            const copy = document.createElement("div");
+            copy.className = "account-copy";
+            copy.appendChild(text("p", "Signed in with your Koha account."));
+            copy.appendChild(text("p", "Request an open slot below; library staff will confirm your booking."));
+            account.appendChild(copy);
+            const signOut = document.createElement("a");
+            signOut.className = "button";
+            signOut.href = "/cgi-bin/koha/opac-main.pl?logout.x=1";
+            signOut.textContent = "Sign out of Koha";
+            account.appendChild(signOut);
+          } else if (session.logged_in) {
+            const copy = document.createElement("div");
+            copy.className = "account-copy";
+            copy.appendChild(text("p", "Koha recognizes your session, but could not prepare the secure booking token."));
+            copy.appendChild(text("p", "Sign out and back in to your OPAC patron account, then reload this page."));
+            account.appendChild(copy);
+            const signOut = document.createElement("a");
+            signOut.className = "button";
+            signOut.href = "/cgi-bin/koha/opac-main.pl?logout.x=1";
+            signOut.textContent = "Sign out of Koha";
+            account.appendChild(signOut);
+          } else {
+            const copy = document.createElement("div");
+            copy.className = "account-copy";
+            copy.appendChild(text("p", "Anyone can browse the schedule."));
+            copy.appendChild(text("p", "Sign in to request an open slot. A saved artist profile is required."));
+            account.appendChild(copy);
+            const link = document.createElement("a");
+            link.className = "button";
+            link.href = "/cgi-bin/koha/opac-user.pl";
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.textContent = "Sign in to Koha";
+            account.appendChild(link);
+          }
+          const refresh = document.createElement("button");
+          refresh.type = "button";
+          refresh.textContent = "Refresh sign-in status";
+          refresh.addEventListener("click", async function () {
+            await loadSession();
+            await loadProfile();
+            await loadMyBookings();
+            await loadGigs();
+          });
+          account.appendChild(refresh);
+        } catch (_) {
+          loggedIn = false;
+          profileReady = false;
+          csrfToken = "";
+          account.textContent = "Could not check your Koha sign-in. You can still browse the public schedule.";
+          profileSection.hidden = true;
+          await loadMyBookings();
+        }
+      }
+
+      async function loadGigs() {
+        try {
+          const gigs = await jsonRequest(api + "/gigs");
+          renderGigs(Array.isArray(gigs) ? gigs : []);
+        } catch (_) {
+          list.replaceChildren(text("p", "The schedule could not be loaded. Please try again later.", "empty"));
+        }
+      }
+
+    (async function () {
+        await loadBranding();
+        await loadSession();
+        await loadProfile();
+        await loadMyBookings();
+        await loadGigs();
+      }());
+    }());
+  </script>
+</body>
+</html>
